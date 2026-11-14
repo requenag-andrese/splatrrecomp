@@ -1,0 +1,38 @@
+# Game data never enters this repository. Inputs are passed by path from outside it.
+*.nsp
+*.nsz
+*.xci
+*.xcz
+*.nca
+*.ncz
+*.nup
+*.nso
+*.npdm
+*.nss
+*.bin
+*.bfsha
+*.bnsh
+*.zs
+*.spv
+exefs/
+romfs/
+dump/
+reports/
+out/
+
+# Local toolchains and caches
+.venv/
+__pycache__/
+*.pyc
+bin/
+obj/
+
+# Console keys and firmware-derived fonts never enter this repository either.
+*.keys
+*.bfttf
+shared-fonts/
+tools/sr_xlate/bin/
+tools/sr_xlate/obj/
+
+# Pictures of the game never enter this repository.
+docs/img/

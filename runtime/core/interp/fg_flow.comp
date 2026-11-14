@@ -1,0 +1,55 @@
+#version 450
+// block matching: one vector per 4x4 quarter-size texels (16x16 pixels), in two steps.
+// sr-recomp: Hookshot searched every vector within +-8 quarter texels (+-32 pixels), which at this game's 2560x1440 is a
+// third of a normal camera turn, about 100 pixels a frame. Here a coarse step tries every 4th vector within +-RADIUS, on
+// a block twice the size at every 2nd texel, and a fine step every vector within +-4 of the coarse answer and of no
+// motion (what stands still on the screen, like the player in a camera turn, must not lose to the scenery behind it).
+layout(local_size_x = 8, local_size_y = 8) in;
+layout(constant_id = 0) const int RADIUS = 32;
+layout(binding = 0) uniform sampler2D la;
+layout(binding = 1) uniform sampler2D lb;
+layout(binding = 2, rgba16f) uniform writeonly image2D flow;
+ivec2 lm, c;
+float coarse[64], fine[64];
+ivec2 at(int i) { return ivec2(i % 8 - 4, i / 8 - 4); }
+float luma_b(ivec2 q) { return texelFetch(lb, clamp(q, ivec2(0), lm), 0).r; }
+// (a vector must earn its length: flat haze and sky match anywhere, and any one chosen there swims)
+float penalty(ivec2 v) { return 0.03 * float(abs(v.x) + abs(v.y)) + (v != ivec2(0) ? 0.6 : 0.0); }
+float cost_coarse(ivec2 v) {
+    float sad = 0.0;
+    for (int i = 0; i < 64; i++) sad += abs(coarse[i] - luma_b(c + at(i) * 2 + v));
+    return sad + penalty(v);
+}
+float cost_fine(ivec2 v) {
+    float sad = 0.0;
+    for (int i = 0; i < 64; i++) sad += abs(fine[i] - luma_b(c + at(i) + v));
+    return sad + penalty(v);
+}
+void main() {
+    const ivec2 g = ivec2(gl_GlobalInvocationID.xy);
+    if (any(greaterThanEqual(g, imageSize(flow)))) return;
+    lm = textureSize(la, 0) - 1;
+    c = g * 4 + 2;
+    for (int i = 0; i < 64; i++) {
+        coarse[i] = texelFetch(la, clamp(c + at(i) * 2, ivec2(0), lm), 0).r;
+        fine[i] = texelFetch(la, clamp(c + at(i), ivec2(0), lm), 0).r;
+    }
+    float best = 1e9;
+    ivec2 far = ivec2(0);
+    for (int dy = -RADIUS; dy <= RADIUS; dy += 4)
+        for (int dx = -RADIUS; dx <= RADIUS; dx += 4) {
+            const float k = cost_coarse(ivec2(dx, dy));
+            if (k < best) best = k, far = ivec2(dx, dy);
+        }
+    best = 1e9;
+    ivec2 bv = ivec2(0);
+    for (int dy = -4; dy <= 4; dy++)
+        for (int dx = -4; dx <= 4; dx++) {
+            const ivec2 near_far = far + ivec2(dx, dy), near_still = ivec2(dx, dy);
+            float k = cost_fine(near_far);
+            if (k < best) best = k, bv = near_far;
+            k = cost_fine(near_still);
+            if (k < best) best = k, bv = near_still;
+        }
+    imageStore(flow, g, vec4(vec2(bv) * 4.0, best / 64.0, 1.0));
+}

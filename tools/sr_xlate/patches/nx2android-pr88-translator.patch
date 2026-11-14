@@ -1,0 +1,43 @@
+diff --git a/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/Instructions/InstEmitAmpere.cs b/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/Instructions/InstEmitAmpere.cs
+index 11b8204..5e5d94d 100644
+--- a/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/Instructions/InstEmitAmpere.cs
++++ b/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/Instructions/InstEmitAmpere.cs
+@@ -199,12 +199,20 @@ namespace Ryujinx.Graphics.Shader.Instructions
+                         {
+                             AWrite(context, Register(reg), shadow, g);
+                             sb.Free(shadow);
+-                            sb.Drop(reg);
++
++                            if (guard == null)
++                            {
++                                sb.Drop(reg);
++                            }
+                         }
+                     }
+                 }
+-                else
++                else if (guard == null)
+                 {
++                    // sr-recomp: only an unconditional write supersedes a result still in flight to the same register. A guarded one
++                    // (here and in the select path above) leaves it pending: it lands where the guard is false. Splatoon Raiders' particle
++                    // lighting writes R43 as "@!P0 MUFU.EX2 R43" then "@P0 FMUL R43" before waiting on the EX2's barrier; dropping the EX2
++                    // left its log2 input in R43, -inf beyond a light's radius, and -inf * 0 made the fog black (fs 8af2975b90646529)
+                     foreach (Register reg in Dests(context, start))
+                     {
+                         sb.Drop(reg);
+diff --git a/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/StructuredIr/AstOptimizer.cs b/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/StructuredIr/AstOptimizer.cs
+index 0bfc07e..a8263e5 100644
+--- a/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/StructuredIr/AstOptimizer.cs
++++ b/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/StructuredIr/AstOptimizer.cs
+@@ -27,7 +27,10 @@ namespace Ryujinx.Graphics.Shader.StructuredIr
+ 
+                         // nxnative: a call's arguments stay the locals StructuredProgram copied them to (SPIR-V passes them by pointer). Propagated, the call
+                         // kept a local whose declaration was removed (KeyNotFoundException in CodeGen/Spirv GetLocalPointer: 1,894 shaders of Viractal)
+-                        if (propVar.Defs.Count == 1 && isWorthPropagating && !UsedByCall(propVar))
++                        // sr-recomp: nor an atomic (or call) into its uses. Its assignment stays (side effects, below), so a propagated copy ran it
++                        // twice: Splatoon Raiders' light-cluster compute (a322644a612bd7e4) advanced its light-list counter by twice the count, the list
++                        // overflowed with many lights in view, and fragments read garbage lights (NaN: black fog, plants at the 1000 clamp)
++                        if (propVar.Defs.Count == 1 && isWorthPropagating && !UsedByCall(propVar) && !HasSideEffects(assignment.Source))
+                         {
+                             PropagateExpression(propVar, assignment.Source);
+                         }

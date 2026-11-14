@@ -1,0 +1,4 @@
+/* The application manifest of sr.exe (sr.manifest: UTF-8 process code page, per-monitor DPI awareness v2), after
+   totk-pc-recomp's runtime/totk.rc (MIT). tools/build_runtime.py compiles it with windres and links it in. The icon
+   (resource 1) is the game's own, which the build takes from the dump into the build folder (sr_icon.rc there). */
+1 24 "sr.manifest"

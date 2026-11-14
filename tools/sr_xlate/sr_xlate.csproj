@@ -1,0 +1,17 @@
+<!-- sr-recomp runtime shader translator: NVN1 (Maxwell) and NVN2 (Ampere) code -> SPIR-V, protocol of totk-pc-recomp's
+     sr-xlate (runtime/core/gfx_shader.c talks to it as "sr-xlate - -serve"). RyuSrc: nx2android PR #88's Ryujinx tree. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>sr-xlate</AssemblyName>
+    <RootNamespace>SrXlate</RootNamespace>
+    <RyuSrc Condition="'$(RyuSrc)' == ''">$(MSBuildThisFileDirectory)../../../vendor/nx2android-pr88/nxnative/dm/third_party/ryujinx</RyuSrc>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(RyuSrc)/src/Ryujinx.Graphics.Shader/Ryujinx.Graphics.Shader.csproj" />
+    <ProjectReference Include="$(RyuSrc)/src/Ryujinx.Common/Ryujinx.Common.csproj" />
+  </ItemGroup>
+</Project>

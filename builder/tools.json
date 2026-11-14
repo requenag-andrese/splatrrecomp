@@ -1,0 +1,293 @@
+{
+ "format": 1,
+ "about": "What the builder needs besides this repository, each from its official source. size and sha256 are those of the downloaded file; every one was downloaded again on 2026-11-12 and matched. 'to' is the folder under the toolchains folder; 'strip' is the archive's own top folder, dropped when unpacking; 'probe' is the path that says the tool is there. builder/tools.py reads 'tools' and 'vendor'; builder/package.py reads 'python' and 'wheels'.",
+ "tools": [
+  {
+   "id": "llvm-mingw",
+   "version": "20261020 (clang 23.1.4), ucrt x86_64",
+   "needed": true,
+   "url": "https://github.com/mstorsjo/llvm-mingw/releases/download/20261020/llvm-mingw-20261020-ucrt-x86_64.zip",
+   "file": "llvm-mingw-20261020-ucrt-x86_64.zip",
+   "size": 190612575,
+   "sha256": "fd5462b7f5d93b2ff981fcd3f9c7e427e47f3203c64ea91c27bcc444eebd74cd",
+   "kind": "zip",
+   "to": ".",
+   "unpacked_mb": 750,
+   "licence": "Apache-2.0 with LLVM exceptions; mingw-w64 runtime: its own permissive licences",
+   "probe": "llvm-mingw-20261020-ucrt-x86_64/bin/clang.exe"
+  },
+  {
+   "id": "dotnet",
+   "version": "SDK 10.0.403 (runtime 10.0.14)",
+   "needed": true,
+   "url": "https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.403/dotnet-sdk-10.0.403-win-x64.zip",
+   "file": "dotnet-sdk-10.0.403-win-x64.zip",
+   "size": 300745255,
+   "sha256": "f398979a9cac2dba760771c4e01f16e431dcd6bcfb2213e3e8f5b3d354095cc0",
+   "checked": "SHA-512 equal to Microsoft's release-metadata/10.0/releases.json",
+   "kind": "zip",
+   "to": "dotnet",
+   "unpacked_mb": 784,
+   "licence": "MIT",
+   "probe": "dotnet/dotnet.exe"
+  },
+  {
+   "id": "streamline",
+   "version": "v2.14.16",
+   "needed": true,
+   "url": "https://github.com/NVIDIA-RTX/Streamline/releases/download/v2.14.16/streamline-sdk-v2.14.16.zip",
+   "file": "streamline-sdk-v2.14.16.zip",
+   "size": 276016170,
+   "sha256": "32041e51db0cab709a271b72a352281b690c2abbd669a827809401a5dd23956b",
+   "kind": "zip",
+   "to": "streamline",
+   "unpacked_mb": 508,
+   "licence": "core MIT (license.txt); plugin and NGX binaries under NVIDIA's licences shipped beside them",
+   "redistribute": "no: always downloaded from NVIDIA's release",
+   "probe": "streamline/include/sl.h"
+  },
+  {
+   "id": "fidelityfx",
+   "version": "v2.4.0",
+   "needed": true,
+   "url": "https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/archive/refs/tags/v2.4.0.zip",
+   "file": "FidelityFX-SDK-2.4.0.zip",
+   "size": 254235565,
+   "sha256": "27120e3bbe0d0b30213825ad40f19077563f04f04572e252109a392d5fb522cb",
+   "kind": "zip",
+   "to": "fidelityfx",
+   "unpacked_mb": 337,
+   "licence": "AMD's docs/license.md (binary redistribution with notice); samples MIT",
+   "probe": "fidelityfx/FidelityFX-SDK-2.4.0"
+  },
+  {
+   "id": "dlss",
+   "version": "310.9.1",
+   "needed": false,
+   "url": "https://github.com/NVIDIA/DLSS/raw/v310.9.1/lib/Windows_x86_64/rel/nvngx_dlss.dll",
+   "file": "nvngx_dlss.dll",
+   "size": 58956912,
+   "sha256": "3975567b8943c53acce397f2b72380092f84f162d00b0d2c7d08a1025c563983",
+   "kind": "file",
+   "to": "dlss-dl",
+   "licence": "NVIDIA RTX SDK licence",
+   "with": [
+    {
+     "url": "https://github.com/NVIDIA/DLSS/raw/v310.9.1/LICENSE.txt",
+     "file": "LICENSE.txt",
+     "size": 26620,
+     "sha256": "d4216e39ebef5f9b50a6712ebb37beeb5379862a67733a9999c651f21592aaf0"
+    }
+   ],
+   "redistribute": "no: always downloaded from NVIDIA's repository; without it the game runs without DLSS",
+   "probe": "dlss-dl/nvngx_dlss.dll"
+  },
+  {
+   "id": "sdl3",
+   "version": "3.4.20",
+   "needed": true,
+   "url": "https://github.com/libsdl-org/SDL/releases/download/release-3.4.20/SDL3-devel-3.4.20-mingw.zip",
+   "file": "SDL3-devel-3.4.20-mingw.zip",
+   "size": 5475969,
+   "sha256": "5d321d3d2d499cfabad3023921e4b56bbec03558060f4e195ce626d200126442",
+   "kind": "zip",
+   "to": "sdl3",
+   "unpacked_mb": 20,
+   "licence": "Zlib",
+   "probe": "sdl3/SDL3-3.4.20/x86_64-w64-mingw32/lib"
+  },
+  {
+   "id": "vulkan-headers",
+   "version": "v1.4.367 (commit 9fbc2a782ee3f8a4db64e7d991e23da75e893f44)",
+   "needed": true,
+   "url": "https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/v1.4.367.zip",
+   "file": "Vulkan-Headers-1.4.367.zip",
+   "size": 3488383,
+   "sha256": "f569297c876ab55625b8d835ffa1195272a21f78cc69f1e848c5021e519e711b",
+   "checked": "its 50 files under include/ equal the clone the port was built with",
+   "kind": "zip",
+   "to": "vulkan-headers",
+   "strip": "Vulkan-Headers-1.4.367",
+   "licence": "Apache-2.0 / MIT",
+   "note": "a tag archive GitHub generates: if its bytes ever change, check include/ against the commit instead",
+   "probe": "vulkan-headers/include/vulkan/vulkan.h"
+  },
+  {
+   "id": "vma",
+   "version": "v3.4.0",
+   "needed": true,
+   "url": "https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/v3.4.0/include/vk_mem_alloc.h",
+   "file": "vk_mem_alloc.h",
+   "size": 771977,
+   "sha256": "8487b7995ad3b263eb73bc5b9a77d71aa69b6bef5d58a715c02d2663afd81f1a",
+   "kind": "file",
+   "to": "vma",
+   "licence": "MIT",
+   "probe": "vma/vk_mem_alloc.h"
+  },
+  {
+   "id": "libvpx",
+   "version": "1.17.0-1 (MSYS2 ucrt64)",
+   "needed": false,
+   "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libvpx-1.17.0-1-any.pkg.tar.zst",
+   "file": "mingw-w64-ucrt-x86_64-libvpx-1.17.0-1-any.pkg.tar.zst",
+   "size": 1625301,
+   "sha256": "8ff6919dbb88ea26ce28d22fd81d6f0d6e200cf56a4dd81ffc2d33124fe98024",
+   "kind": "tar.zst",
+   "to": "libvpx",
+   "licence": "BSD-3-Clause",
+   "note": "the game's movies; without it sr.exe is built without them. MSYS2 moves old packages away from this address: the hash stays the test",
+   "probe": "libvpx/ucrt64/lib/libvpx.a"
+  }
+ ],
+ "wheels": {
+  "about": "The packages of requirements.txt and what they need, as PyPI lists them for Python 3.12 on 64-bit Windows (sha256 = PyPI's own digest).",
+  "to": "python/Lib/site-packages",
+  "files": [
+   {
+    "name": "capstone",
+    "version": "5.0.9",
+    "file": "capstone-5.0.9-py3-none-win_amd64.whl",
+    "size": 1273459,
+    "sha256": "732cedbbb56d42e723f14d7af6387f1454194a820b4b96b56d1e53f865ef85d0",
+    "url": "https://files.pythonhosted.org/packages/50/e6/6f06fdb6a9ed32b2f7cd9c036b92d5324112c3ef7080f2c71efc367d40dd/capstone-5.0.9-py3-none-win_amd64.whl"
+   },
+   {
+    "name": "lz4",
+    "version": "4.4.5",
+    "file": "lz4-4.4.5-cp312-cp312-win_amd64.whl",
+    "size": 99497,
+    "sha256": "713a777de88a73425cf08eb11f742cd2c98628e79a8673d6a52e3c5f0c116f33",
+    "url": "https://files.pythonhosted.org/packages/a5/0b/a54cd7406995ab097fceb907c7eb13a6ddd49e0b231e448f1a81a50af65c/lz4-4.4.5-cp312-cp312-win_amd64.whl"
+   },
+   {
+    "name": "numpy",
+    "version": "2.5.4",
+    "file": "numpy-2.5.4-cp312-cp312-win_amd64.whl",
+    "size": 12573091,
+    "sha256": "a7b1b6353e36a7e50de2973a38d705c88ee93adcf120673cee7f45a4a3fa223a",
+    "url": "https://files.pythonhosted.org/packages/12/33/fefe62073dc8acfd0f2b9ed7c003af2f50aa61555e113e6db02b8f79f145/numpy-2.5.4-cp312-cp312-win_amd64.whl"
+   },
+   {
+    "name": "zstandard",
+    "version": "0.25.0",
+    "file": "zstandard-0.25.0-cp312-cp312-win_amd64.whl",
+    "size": 506276,
+    "sha256": "ffef5a74088f1e09947aecf91011136665152e0b4b359c42be3373897fb39b01",
+    "url": "https://files.pythonhosted.org/packages/79/3b/fa54d9015f945330510cb5d0b0501e8253c127cca7ebe8ba46a965df18c5/zstandard-0.25.0-cp312-cp312-win_amd64.whl"
+   },
+   {
+    "name": "backports.zstd",
+    "version": "1.8.0",
+    "file": "backports_zstd-1.8.0-cp312-cp312-win_amd64.whl",
+    "size": 330563,
+    "sha256": "1eddf59fedaf19dd3a8e9c597add7eb6f0d51d4467a0924b2dcd2c118ed18ff5",
+    "url": "https://files.pythonhosted.org/packages/a5/78/2f497fd2bbf46099e46650f75467967d21f25bb921c894d28d493bbfb7e4/backports_zstd-1.8.0-cp312-cp312-win_amd64.whl"
+   },
+   {
+    "name": "cryptography",
+    "version": "50.0.2",
+    "file": "cryptography-50.0.2-cp311-abi3-win_amd64.whl",
+    "size": 3824692,
+    "sha256": "7afa5a6602a9f29af1f3a2965f831bae7c9d5d597b7cbb716d41ab3b7d89879c",
+    "url": "https://files.pythonhosted.org/packages/9a/4f/adfc442765721292fff86d314ce385d3249d22db42295c0dd057727b60f3/cryptography-50.0.2-cp311-abi3-win_amd64.whl"
+   },
+   {
+    "name": "cffi",
+    "version": "2.1.1",
+    "file": "cffi-2.1.1-cp312-cp312-win_amd64.whl",
+    "size": 185919,
+    "sha256": "f53e442b08449d42821fa4a4fba000095af9f62742a500f978a9f557ec44339a",
+    "url": "https://files.pythonhosted.org/packages/d9/79/615cc094e2fb508cade7de88d3b4f6c4ec2bab695c97bce9153dc65aadf5/cffi-2.1.1-cp312-cp312-win_amd64.whl"
+   },
+   {
+    "name": "pycparser",
+    "version": "3.12",
+    "file": "pycparser-3.12-py3-none-any.whl",
+    "size": 62600,
+    "sha256": "a076f3f489b39b43ed13563a1dafe42447445bec2e294154ec5c57fcdda4c85e",
+    "url": "https://files.pythonhosted.org/packages/b6/ae/315bbeee126a769cbde43cf4908acb4b40408d8bf8bbf334dd7368d8dadf/pycparser-3.12-py3-none-any.whl"
+   }
+  ]
+ },
+ "vendor": {
+  "about": "The pinned clones (THIRD_PARTY.md), each as the archive GitHub makes of its commit, unpacked to the vendor folder. 'tree' is the test: one hash over every file's path and SHA-256 (tools.py tree_hash), since the archive's own bytes may change; sha256 only spares the download of a kept file. Downloaded 2026-11-12: the files equal the clones the port was built with, and after 'patches' (applied by tools.py, no git) nx2android equals the patched clone.",
+  "repos": [
+   {
+    "id": "totk-pc-recomp",
+    "repo": "https://github.com/valentderah/totk-pc-recomp",
+    "commit": "0f65b4ee07e934e99b0c937d059f6bb6ae72e1c3",
+    "url": "https://github.com/valentderah/totk-pc-recomp/archive/0f65b4ee07e934e99b0c937d059f6bb6ae72e1c3.zip",
+    "file": "totk-pc-recomp-0f65b4ee07e9.zip",
+    "size": 3368903,
+    "sha256": "62f91106e5546334140b357cadf8b12ee585e2cdafe0735450ee31a9b308ca53",
+    "tree": "0a92926f892ae14810464bf890f005ec4bc62bd6c5c32e1741678c35e13acd0d",
+    "probe": "totk-pc-recomp/recomp/lifter.py",
+    "licence": "MIT",
+    "for": "the lifter"
+   },
+   {
+    "id": "nx2android-pr88",
+    "repo": "https://github.com/shirai91/nx2android",
+    "commit": "3089bb229510075db9b048403192f21a860071fe",
+    "url": "https://github.com/shirai91/nx2android/archive/3089bb229510075db9b048403192f21a860071fe.zip",
+    "file": "nx2android-pr88-3089bb229510.zip",
+    "size": 51322065,
+    "sha256": "b12e9680295b3594b4ff279d1a075f333cf07acbf1d332906f0c65c5a826048a",
+    "tree": "56d36288c19b3b5d9a0732f8ed4a23942166289d248abb92a52572b8d0edf1eb",
+    "probe": "nx2android-pr88/nxnative/dm/third_party/ryujinx/src/Ryujinx.Graphics.Shader/Ryujinx.Graphics.Shader.csproj",
+    "patches": [
+     {
+      "file": "tools/sr_xlate/patches/nx2android-pr88-translator.patch",
+      "at": "."
+     },
+     {
+      "file": "tools/sr_xlate/patches/0015-motion-previous-position-nvn2.patch",
+      "at": "nxnative/dm/third_party/ryujinx"
+     }
+    ],
+    "licence": "MIT (README.md, nxnative/LICENSE)",
+    "for": "the shader translator and the scanners"
+   },
+   {
+    "id": "nup",
+    "repo": "https://github.com/a55uka/nup",
+    "commit": "92089de3bf98e04f02d8b14f3b91dddc88e4cd80",
+    "url": "https://github.com/a55uka/nup/archive/92089de3bf98e04f02d8b14f3b91dddc88e4cd80.zip",
+    "file": "nup-92089de3bf98.zip",
+    "size": 39333,
+    "sha256": "54e45acd3cbb05697120acc993b84f2251fde39652ea29314bee0c6bcad545c8",
+    "tree": "d90eb1d0ad7551d7995393fa32ae58568ded4cc179505c38aa5c66188d9472c9",
+    "probe": "nup/SPEC.md",
+    "licence": "MIT",
+    "for": "reading NUP files"
+   }
+  ]
+ },
+ "made_here": [
+  {
+   "id": "vulkan-implib",
+   "how": "llvm-dlltool makes libvulkan-1.a from the exports of the system's vulkan-1.dll (THIRD_PARTY.md)"
+  },
+  {
+   "id": "sr-xlate",
+   "how": "dotnet build of tools/sr_xlate against the patched nx2android-pr88 clone, into sr_xlate/; NuGet brings the packages Ryujinx's projects name (versions fixed there, no hash pinned here)"
+  }
+ ],
+ "python": {
+  "id": "python",
+  "version": "3.12.10, embeddable, 64-bit",
+  "needed": true,
+  "url": "https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip",
+  "file": "python-3.12.10-embed-amd64.zip",
+  "size": 11133606,
+  "sha256": "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3",
+  "checked": "from python.org over HTTPS; no published hash was compared",
+  "kind": "zip",
+  "to": "python",
+  "unpacked_mb": 23,
+  "licence": "PSF-2.0",
+  "note": "the workspace uses a venv of a full install today; the package uses this one, with the wheels below unpacked into python/Lib/site-packages and 'import site' enabled in python312._pth",
+  "probe": "python/python.exe"
+ }
+}

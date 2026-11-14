@@ -1,0 +1,6 @@
+capstone==5.0.9
+lz4==4.4.5
+numpy==2.5.4
+zstandard==0.25.0
+backports.zstd==1.8.0
+cryptography==50.0.2
