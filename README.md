@@ -2,6 +2,8 @@
 
 Static recompilation of one's own Switch 2 dump of Splatoon Raiders 1.1.0 into a Windows program: analysis tools, the recompiler, the runtime and a builder that turns a plaintext NSP into a game folder. Nothing of the game is included: it needs the player's own dump.
 
+> **Disclaimer:** this project was developed entirely with AI (Anthropic's Claude, through Claude Code): the analysis, the recompiler, the runtime, the builder, the tests and the documentation were written by it, directed and tested by a person. Read the code with that in mind before relying on it.
+
 ## Rules
 
 - No game data in this repository. Inputs are passed by path; `.gitignore` blocks dump formats; both tools refuse to
