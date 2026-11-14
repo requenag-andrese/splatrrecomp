@@ -31,6 +31,10 @@ void opt_focus_key(const char *key);
 // The next row is greyed out like one the environment fixes, with note under its label and in its description.
 void opt_disable_next(UiTextId note);
 void opt_disable_next_text(const char *note);   // note must outlive the frame
+// sr-recomp: the next row shows this picture left of its value, and the description pane shows it large above the
+// text while that row is the one described (ui/icon_atlas.h gives the game's icons).
+// path: the icon's RomFS picture, drawn from the large texture (icon_get_large) in the description pane once ready.
+void opt_icon_next(ImTextureID tex, ImVec2 uv0, ImVec2 uv1, const char *path = nullptr);
 
 // Page text that is not a row: a group heading in the accent colour, a wrapped paragraph (warn: the warning colour).
 void opt_group(UiTextId title);

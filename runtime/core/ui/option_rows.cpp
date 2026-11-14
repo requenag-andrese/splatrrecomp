@@ -16,6 +16,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"   // SetKeyOwner, SetFocusID, NavCursorVisible
 
+#include "ui/icon_atlas.h"
 #include "ui/option_rows.h"
 
 extern "C" {
@@ -37,13 +38,16 @@ static bool g_held;                      // the last row's left / right has been
 static float g_bottom;                   // opt_reserve_bottom: kept free under the panes
 static bool g_disable_next;              // opt_disable_next: the next row is greyed out with g_disable_note
 static const char *g_disable_note;
+struct RowIcon { ImTextureID tex; ImVec2 uv0, uv1; char path[128]; };
+static RowIcon g_icon_next;              // opt_icon_next: the next row's picture; tex 0 none
 
 // The description pane: this frame's hovered and selected rows, the page's first row, and the last one shown.
-struct Desc { char text[UI_DESC_BYTES]; };
+struct Desc { char text[UI_DESC_BYTES]; RowIcon icon; };
 static Desc g_hover, g_focus, g_first, g_shown;
 
 // disabled: the note of a row opt_disable_next greyed out, else NULL.
 static void desc_set(Desc &d, const char *desc, const char *key, const CfgMeta *m, const char *disabled) {
+    d.icon = g_icon_next;
     int n = snprintf(d.text, sizeof d.text, "%s", desc);
     if (n < 0 || n >= (int)sizeof d.text) return;
     if (disabled)
@@ -63,6 +67,11 @@ float opt_bottom(void) { return g_bottom; }
 
 void opt_disable_next(UiTextId note) { opt_disable_next_text(menu_text(note)); }
 
+void opt_icon_next(ImTextureID tex, ImVec2 uv0, ImVec2 uv1, const char *path) {
+    g_icon_next = {tex, uv0, uv1, {0}};
+    if (path) snprintf(g_icon_next.path, sizeof g_icon_next.path, "%s", path);
+}
+
 void opt_disable_next_text(const char *note) {
     g_disable_next = true;
     g_disable_note = note;
@@ -74,6 +83,8 @@ void opt_begin(const char *id, float scale) {
     g_focus_req = false;
     if (g_take_first) ImGui::NavMoveRequestCancel();   // this frame's move goes to the first row instead
     g_hover.text[0] = g_focus.text[0] = g_first.text[0] = 0;
+    g_hover.icon = g_focus.icon = g_first.icon = {};
+    g_icon_next = {};
     ImVec2 avail = ImGui::GetContentRegionAvail();
     avail.y -= g_bottom;
     ImGui::PushID(id);
@@ -98,6 +109,13 @@ void opt_end(void) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14 * g_scale, 6 * g_scale));
     ImGui::BeginChild("##desc", ImVec2(0, avail.y), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_NoNav);
     ImGui::PopStyleVar();
+    if (g_shown.icon.tex) {   // sr-recomp: the described row's picture, large
+        float s = 150 * g_scale;
+        RowIcon big = g_shown.icon;   // the large texture's copy once ready, the row's small one until then
+        if (big.path[0]) icon_get_large(big.path, &big.tex, &big.uv0, &big.uv1);
+        ImGui::Image(big.tex, ImVec2(s, s), big.uv0, big.uv1);
+        ImGui::Spacing();
+    }
     ImGui::PushTextWrapPos(0);
     ImGui::TextUnformatted(g_shown.text);
     ImGui::PopTextWrapPos();
@@ -208,6 +226,12 @@ static int row_text(const char *key, const char *label, const char *desc, const 
                     v.value);
         if (!v.arrows && !movable) value_left = vx;
     }
+    if (g_icon_next.tex) {   // sr-recomp: the value's picture, left of it
+        float s = h * 0.86f, ix = value_left - fs * 0.35f - s, iy = p.y + (h - s) * 0.5f;
+        dl->AddImage(g_icon_next.tex, ImVec2(ix, iy), ImVec2(ix + s, iy + s), g_icon_next.uv0, g_icon_next.uv1,
+                     off ? IM_COL32(255, 255, 255, 110) : IM_COL32_WHITE);
+        value_left = ix;
+    }
     if (v.note || v.is_default) {   // under the value, right-aligned with it
         const char *t = v.note ? v.note : menu_text(UI_MENU_DEFAULT_MARK);
         float tw = font->CalcTextSizeA(small, FLT_MAX, 0, t).x;
@@ -221,6 +245,7 @@ static int row_text(const char *key, const char *label, const char *desc, const 
                      : m && !m->live ? menu_text(UI_MENU_AFTER_RESTART)
                                      : NULL;
     if (note) dl->AddText(font, small, ImVec2(p.x + pad, ny), off ? IM_COL32(200, 150, 90, 255) : kDim, note);
+    g_icon_next = {};   // one row's
     ImGui::PopID();
     return off ? 0 : step;
 }

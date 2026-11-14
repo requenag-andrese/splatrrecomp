@@ -609,6 +609,8 @@ int main(int argc, char **argv) {
     plat_crash_hook(crash_handler);
     parse_trace();
     prof_start();
+    mem_scan_start();   // sr-recomp diagnostics: SR_MEMSCAN (sr/mem_scan.c)
+    loadout_live_start();   // sr-recomp: the loadout changed while the game runs (sr/loadout_live.c)
     // Timed guest waits (kernel.c block_inner) sleep in whole milliseconds; at the default 15.6 ms tick a 1 ms wait
     // costs a full tick. SR_TIMER_1MS=0 keeps the default for comparison.
     if (cfg_bool("SR_TIMER_1MS")) plat_timer_1ms();

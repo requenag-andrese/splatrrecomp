@@ -84,6 +84,8 @@ static const uint8_t *sarc_find(const uint8_t *a, size_t n, const char *member, 
     return NULL;
 }
 
+uint8_t *game_art_read(const char *path, size_t *out) { return read_zs(path, out); }
+
 uint8_t *game_art_font(const char *name, size_t *size) {
     size_t n = 0, wn = 0;
     uint8_t *a = read_zs("Font/Font.Nin_Ounce_NVN2.bfarc.zs", &n);
@@ -201,6 +203,107 @@ static int decode_mask(const uint8_t *b, size_t n, const uint8_t *brti, const ch
         }
     masks[nmasks++] = (GameMask){name, (int)w, (int)h, 1, px};
     return 1;
+}
+
+// sr-recomp: one icon of the game (UI/Tex/<folder>/<name>.bntx.zs: a BNTX with one ASTC texture), size x size RGBA.
+// The picture is scaled to fit the square, its proportions kept, and averaged by its alpha so the edges stay clean.
+uint8_t *game_art_icon(const char *path, int size) {
+    size_t n = 0;
+    uint8_t *b = read_zs(path, &n), *out = NULL, *rgba = NULL, *blocks = NULL;
+    if (!b || n < 0x40 || memcmp(b, "BNTX", 4) || size < 1) goto done;
+    {
+        uint64_t table = le64(b + 0x28), p = table + 8 <= n ? le64(b + table) : n;
+        if (p + 0x78 > n || memcmp(b + p, "BRTI", 4)) goto done;
+        const uint8_t *brti = b + p;
+        uint32_t fmt = le32(brti + 0x1c), w = le32(brti + 0x24), h = le32(brti + 0x28), lay = le32(brti + 0x34);
+        uint32_t bytes = le32(brti + 0x50), family = fmt >> 8;
+        uint64_t ptrs = le64(brti + 0x70);
+        static const uint8_t kAstc[][2] = {{4, 4}, {5, 4}, {5, 5}, {6, 5}, {6, 6}, {8, 5}, {8, 6}, {8, 8}, {10, 5}, {10, 6}, {10, 8}, {10, 10}, {12, 10}, {12, 12}};
+        if (family < 0x2D || family > 0x3A || ptrs + 8 > n || !w || !h || w > 4096 || h > 4096) goto done;
+        uint64_t data = le64(b + ptrs);
+        if (data + bytes > n) goto done;
+        uint32_t aw = kAstc[family - 0x2D][0], ah = kAstc[family - 0x2D][1], cols = (w + aw - 1) / aw, rows = (h + ah - 1) / ah;
+        blocks = malloc((size_t)cols * rows * 16), rgba = malloc((size_t)w * h * 4);
+        out = calloc((size_t)size * size, 4);
+        if (!blocks || !rgba || !out) goto done;
+        for (uint32_t y = 0; y < rows; y++)
+            for (uint32_t x = 0; x < cols; x++) {
+                uint64_t o = nvn_bl_offset(x * 16, y, 0, cols * 16, rows, lay, 0);
+                if (o + 16 <= bytes) memcpy(blocks + ((size_t)y * cols + x) * 16, b + data + o, 16);
+                else memset(blocks + ((size_t)y * cols + x) * 16, 0, 16);
+            }
+        astc_decode_ldr(blocks, w, h, aw, ah, (fmt & 0xff) == 6, rgba);
+        float k = (float)(w > h ? w : h) / (float)size;   // source pixels per icon pixel
+        int ox = (int)((size - w / k) / 2), oy = (int)((size - h / k) / 2);
+        for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++) {
+                float sx0 = (x - ox) * k, sy0 = (y - oy) * k;
+                if (sx0 < 0 || sy0 < 0 || sx0 >= w || sy0 >= h) continue;
+                uint8_t *d = out + ((size_t)y * size + x) * 4;
+                double c[3] = {0, 0, 0}, a = 0, count = 0;
+                if (k < 1) {   // a smaller picture than the icon: bilinear between the four nearest pixels
+                    float fx = sx0 + k * 0.5f - 0.5f, fy = sy0 + k * 0.5f - 0.5f;
+                    if (fx < 0) fx = 0;
+                    if (fy < 0) fy = 0;
+                    uint32_t x0 = (uint32_t)fx, y0 = (uint32_t)fy, x1 = x0 + 1 < w ? x0 + 1 : x0, y1 = y0 + 1 < h ? y0 + 1 : y0;
+                    float tx = fx - x0, ty = fy - y0;
+                    const uint32_t xs[2] = {x0, x1}, ys[2] = {y0, y1};
+                    const float wx[2] = {1 - tx, tx}, wy[2] = {1 - ty, ty};
+                    for (int j = 0; j < 2; j++)
+                        for (int i = 0; i < 2; i++) {
+                            const uint8_t *s = rgba + ((size_t)ys[j] * w + xs[i]) * 4;
+                            double f = wx[i] * wy[j];
+                            c[0] += f * s[0] * s[3], c[1] += f * s[1] * s[3], c[2] += f * s[2] * s[3], a += f * s[3];
+                            count += f;
+                        }
+                } else {   // larger: the average of the pixels the icon pixel covers
+                    uint32_t x0 = (uint32_t)sx0, y0 = (uint32_t)sy0, x1 = (uint32_t)(sx0 + k), y1 = (uint32_t)(sy0 + k);
+                    if (x1 <= x0) x1 = x0 + 1;
+                    if (y1 <= y0) y1 = y0 + 1;
+                    if (x1 > w) x1 = w;
+                    if (y1 > h) y1 = h;
+                    for (uint32_t sy = y0; sy < y1; sy++)
+                        for (uint32_t sx = x0; sx < x1; sx++) {
+                            const uint8_t *s = rgba + ((size_t)sy * w + sx) * 4;
+                            c[0] += s[0] * s[3], c[1] += s[1] * s[3], c[2] += s[2] * s[3], a += s[3];
+                        }
+                    count = (double)(x1 - x0) * (y1 - y0);
+                }
+                if (a > 0) d[0] = (uint8_t)(c[0] / a + 0.5), d[1] = (uint8_t)(c[1] / a + 0.5), d[2] = (uint8_t)(c[2] / a + 0.5);
+                d[3] = (uint8_t)(a / count + 0.5);
+            }
+        // The colour of the clear pixels next to the picture: their neighbours', not black. Drawn smaller (mips) or
+        // between pixels, the edge then blends with the picture's own colour instead of a dark rim.
+        uint8_t *has = malloc((size_t)size * size), *next = malloc((size_t)size * size);
+        if (has && next) {
+            for (size_t i = 0; i < (size_t)size * size; i++) has[i] = out[i * 4 + 3] > 0;
+            for (int pass = 0; pass < 8; pass++) {
+                memcpy(next, has, (size_t)size * size);
+                for (int y = 0; y < size; y++)
+                    for (int x = 0; x < size; x++) {
+                        if (has[(size_t)y * size + x]) continue;
+                        int sum[3] = {0, 0, 0}, nn = 0;
+                        for (int dy = -1; dy <= 1; dy++)
+                            for (int dx = -1; dx <= 1; dx++) {
+                                int u = x + dx, v = y + dy;
+                                if (u < 0 || v < 0 || u >= size || v >= size || !has[(size_t)v * size + u]) continue;
+                                const uint8_t *s = out + ((size_t)v * size + u) * 4;
+                                sum[0] += s[0], sum[1] += s[1], sum[2] += s[2], nn++;
+                            }
+                        if (!nn) continue;
+                        uint8_t *d = out + ((size_t)y * size + x) * 4;
+                        d[0] = (uint8_t)(sum[0] / nn), d[1] = (uint8_t)(sum[1] / nn), d[2] = (uint8_t)(sum[2] / nn);
+                        next[(size_t)y * size + x] = 1;
+                    }
+                memcpy(has, next, (size_t)size * size);
+            }
+        }
+        free(has), free(next);
+    }
+done:
+    free(blocks), free(rgba), free(b);
+    if (out && !rgba) free(out), out = NULL;
+    return out;
 }
 
 int game_art_masks_load(const char *const *names) {

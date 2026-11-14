@@ -4,7 +4,8 @@
               when the fonts must be made, the disks' free space, a Vulkan 1.3 loader, the game folder
     romfs     the NSP's RomFS level copied to <dest>/romfs/romfs.bin (the game reads it there; the NSP can go)
     exefs     the program's code and metadata to <dest>/exefs (tools/extract_exefs.py)
-    lift      the code to C in <temp>/gen (tools/gen_c.py, totk-pc-recomp's generator with the srrecomp extension)
+    lift      the code to C in <temp>/gen (tools/gen_c.py, totk-pc-recomp's generator with the srrecomp extension
+              and the code patch sets srrecomp/patches has for this version of the game)
     compile   the C to objects in <temp>/obj (tools/compile_gen.py)
     fonts     the Switch system fonts from the firmware, with the player's keys (tools/firmware_fonts.py; the only step
               that reads keys, whose values stay in that process); transient: it runs when the link does
@@ -497,8 +498,9 @@ class Lift(Step):
     def run(self, ctx):
         out = ctx.temp / 'gen'
         ctx.reporter.progress(self.id, 'lift', force=True)
-        run_tool(ctx, self.id, 'tools/gen_c.py', ['--vendor', ctx.layout.vendor, '--', '--exefs', ctx.dest / 'exefs',
-                                                  '--out', out, '--modules', 'main,subsdk0,sdk'])
+        run_tool(ctx, self.id, 'tools/gen_c.py', ['--vendor', ctx.layout.vendor, '--patches-dir',
+                                                  ctx.layout.repo / 'srrecomp' / 'patches', '--', '--exefs',
+                                                  ctx.dest / 'exefs', '--out', out, '--modules', 'main,subsdk0,sdk'])
         return {}
 
 

@@ -507,8 +507,12 @@ static const char *const text_en[UI_TEXT_COUNT] = {
                           "frame more of delay, and fast movement or the HUD may look soft or wavy. Off while the menu is open.",
     [UI_SR_INTERP_NOTE_OFF] = "off: the screen shows %.0f Hz",
     [UI_SR_INTERP_NOTE] = "%dx: the screen shows %.0f Hz",
+    [UI_SR_EXPERIMENTAL] = "EXPERIMENTAL: this changes the game while it runs and may fail: wrong colours, a loadout "
+                           "that does not stick, odd behaviour or a crash. Use it at your own risk, and keep a copy of "
+                           "your save.",
     [UI_SR_TAB_INK] = "Ink",
-    [UI_SR_INK_NOTE] = "The game reads its ink colours when it starts: a change here shows after a restart.",
+    [UI_SR_INK_NOTE] = "A change here shows at once, on your character and on the ink already on the ground, and stays "
+                       "through raids and islands. The game's own gauges and menus keep its colour until it loads a place.",
     [UI_SR_INK_PLAYER] = "Your ink",
     [UI_SR_INK_PLAYER_DESC] = "The colour of your ink, and of everything the game tints with it: the hair, the weapon's "
                               "tank, the splashes. A custom colour takes the place of all the colours the game offers in "
@@ -525,6 +529,66 @@ static const char *const text_en[UI_TEXT_COUNT] = {
                            "controller or the keys: left and right on these rows. The game makes its brighter and "
                            "darker tones from this colour, so a very dark or a very pale one loses the ink's shading.",
     [UI_SR_INK_HEX] = "Hex code",
+    [UI_SR_TAB_LOADOUT] = "Loadout",
+    [UI_SR_LOADOUT_NOTE] = "What you choose here goes on your character at once and stays through raids and islands. "
+                           "Your save is not changed: the game's Gear screen keeps showing what you own, and anything "
+                           "left on \"Your own\" stays as you have it.",
+    [UI_SR_LOADOUT_NO_NAMES] = "The game's names could not be read from the game files, so the loadout cannot be chosen "
+                               "here.",
+    [UI_SR_LOADOUT_ON] = "Custom loadout",
+    [UI_SR_LOADOUT_ON_DESC] = "Puts the loadout below on your character. Off gives you back everything you carry in "
+                              "your save, at once.",
+    [UI_SR_LOADOUT_GROUP_WEAPON] = "Weapon",
+    [UI_SR_LOADOUT_WEAPON_KIND] = "Weapon type",
+    [UI_SR_LOADOUT_WEAPON_KIND_DESC] = "The kind of weapon. The row below picks one of its weapons.",
+    [UI_SR_LOADOUT_WEAPON] = "Weapon",
+    [UI_SR_LOADOUT_WEAPON_DESC] = "The weapon you carry. Primo weapons are the stronger versions the game gives after "
+                                  "its story.",
+    [UI_SR_LOADOUT_WEAPON_LV] = "Weapon level",
+    [UI_SR_LOADOUT_WEAPON_LV_DESC] = "The level of the weapon. Hold left or right to step faster.",
+    [UI_SR_LOADOUT_LEVEL] = "Level %d",
+    [UI_SR_LOADOUT_WEAPON_POWER] = "Weapon power %d",
+    [UI_SR_LOADOUT_WEAPON_POWER_DESC] = "A power of the weapon: left and right pick it, A changes its level (1 to 3). "
+                                        "\"None\" leaves the slot empty.",
+    [UI_SR_LOADOUT_GROUP_TANK] = "Tank and Bot Buddy",
+    [UI_SR_LOADOUT_TANK] = "Tank",
+    [UI_SR_LOADOUT_TANK_DESC] = "The ink tank on your back. Each tank has its own gadgets and relic powers, but the "
+                                "gadgets and powers chosen here are put on with any of them.",
+    [UI_SR_LOADOUT_TANK_DEFAULT] = "Starter tank",
+    [UI_SR_LOADOUT_BUDDY] = "Bot Buddy",
+    [UI_SR_LOADOUT_BUDDY_DESC] = "Who rides the Exploration Bot with you, and the Showstopper that comes with them.",
+    [UI_SR_LOADOUT_GROUP_GADGETS] = "Gadgets",
+    [UI_SR_LOADOUT_GADGET_L] = "Gadget (L)",
+    [UI_SR_LOADOUT_GADGET_R] = "Gadget (R)",
+    [UI_SR_LOADOUT_GADGET_A] = "Gadget (A)",
+    [UI_SR_LOADOUT_GADGET_DESC] = "The gadget on this button. \"Empty\" leaves the button without one. A gadget of "
+                                  "another tank works too, and the A button works before the tank reaches Ultra.",
+    [UI_SR_LOADOUT_PARTS_L] = "Parts (L)",
+    [UI_SR_LOADOUT_PARTS_R] = "Parts (R)",
+    [UI_SR_LOADOUT_PARTS_A] = "Parts (A)",
+    [UI_SR_LOADOUT_PARTS_DESC] = "The parts fitted to this gadget: A opens their list. \"Your own\" keeps the parts you "
+                                 "fitted in the game when the gadget is yours, and none when it is another one.",
+    [UI_SR_LOADOUT_PARTS_COUNT] = "%d parts",
+    [UI_SR_LOADOUT_PARTS_PICK_GADGET] = "choose a gadget first",
+    [UI_SR_LOADOUT_PARTS_TITLE] = "Parts for %s: %d of %d",
+    [UI_SR_LOADOUT_PARTS_DONE] = "Done",
+    [UI_SR_LOADOUT_PARTS_DONE_DESC] = "Back to the loadout. B does the same; the parts are already on.",
+    [UI_SR_LOADOUT_PARTS_OWN] = "Your own parts",
+    [UI_SR_LOADOUT_PARTS_OWN_DESC] = "Forgets the parts chosen here: the gadget keeps the parts you fitted in the game.",
+    [UI_SR_LOADOUT_PART_OFF] = "Off",
+    [UI_SR_LOADOUT_PART_LEVEL] = "Level %d of %d",
+    [UI_SR_LOADOUT_PART_DESC] = "Left and right change the part's level; A puts it on at its highest or takes it off. "
+                                "A gadget holds nine parts at most.",
+    [UI_SR_LOADOUT_GROUP_RELICS] = "Relic Powers",
+    [UI_SR_LOADOUT_RELIC_POWER] = "Relic power %d",
+    [UI_SR_LOADOUT_RELIC_POWER_DESC] = "A relic power: left and right pick it, A changes its level (1 to 3). \"None\" "
+                                       "leaves the slot empty.",
+    [UI_SR_LOADOUT_OWN] = "Your own",
+    [UI_SR_LOADOUT_NONE] = "None",
+    [UI_SR_LOADOUT_EMPTY] = "Empty",
+    [UI_SR_LOADOUT_SELECTED] = "chosen",
+    [UI_SR_LOADOUT_CLEAR] = "Back to your own",
+    [UI_SR_LOADOUT_CLEAR_DESC] = "Sets every row above to \"Your own\": you carry what your save has.",
     [UI_SR_RESTART_DESC] = "Closes the game and starts it again, so the settings marked \"after restart\" take effect. "
                            "Progress since your last save is lost.",
     [UI_SR_RING] = "Crash ring",

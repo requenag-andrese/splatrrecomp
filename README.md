@@ -110,9 +110,23 @@ and the picture settings; a line at the top says when it is saved (about 350 MB,
 the key off. See `runtime/core/vk_dump.c`.
 Changes are written to `sr-config.ini`.
 The Ink tab sets the player's and the enemies' ink colour (`ink_color`, `enemy_ink_color` in `sr-config.ini`: `rrggbb`,
-unset for the game's own): a colour wheel, a hex code or three stepper rows. The game reads its colours at start, so a
-change shows after a restart; the runtime serves the game's team colour table with those colours written in
-(`runtime/sr/ink_color.c`), from the profile folder, and the game's own file is not touched.
+unset for the game's own): a colour wheel, a hex code or three stepper rows. The runtime serves the game's team colour
+table with those colours written in at start (`runtime/sr/ink_color.c`), from the profile folder, and the game's own
+file is not touched. A change while the game runs is written into the game's copy of that table in its memory
+(`runtime/sr/ink_live.c`), which the game reads again when it loads a place. It also shows at once: the game's own
+thread derives its tones from the table again (its own code, called from the controller read), and the old tones are
+replaced by the new ones wherever the character, its ink and the rest keep copies of them in the game's heap.
+A loadout of the player's choosing, changed while the game runs (`loadout = 1` and the `loadout_*` keys of
+`sr-config.ini`: `loadout_weapon`, `loadout_weapon_lv`, `loadout_weapon_powers`, `loadout_tank`, `loadout_gadget_l` /
+`_r` / `_a` with `loadout_parts_*`, `loadout_buddy`, `loadout_powers`; names are the game's internal ones, a key left out
+keeps the player's own). The game keeps what the player carries in one object and equips what it says; the runtime
+writes the settings over it and writes them again whenever the game fills it from the save (a raid or an island
+starting), so the loadout holds on the ship, in raids and on islands, a changed setting shows at once, and
+`loadout = 0` gives the player's own back (`runtime/sr/loadout_live.c`; the object's place and layout are those of
+version 1.1.0, checked before anything is written). The save is not touched and the game's Gear screen keeps showing
+what the save has. The Loadout tab of the menu sets the same keys with the game's own names, read from the dump in the game's language (the text archive, the gadget part files and the gadget table: `runtime/sr/loadout_names.c`, `runtime/core/ui/loadout_page.cpp`), each row with the game's icon of its item, decoded from the dump when the page first shows it (`runtime/core/ui/icon_atlas.cpp`); nothing of the game's text or pictures is kept here. An earlier way, the game's raid table rewritten at start, only works in the
+game's challenge raids and is off unless `loadout_table = 1` (`runtime/sr/loadout.c`, `runtime/sr/byml.c`, the code
+patch set `loadout` of `srrecomp/patches`).
 The Amiibo tab loads 540-byte figure dumps (`amiibo/` next to `sr.exe` by default) and puts one on the emulated reader;
 the game's own data on the figure is kept in `<profile>/amiibo/`, never in the dump.
 

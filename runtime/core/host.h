@@ -256,11 +256,19 @@ void account_uid(uint64_t out[2]);                         // the local user's n
 // ---- movies (ov_movie.c)
 void movie_tick(Cpu *c);                                   // at every present, on the presenting guest thread: hands
                                                            // decoded movie frames over when due, signals their events
+void loadout_live_start(void);                              // sr-recomp: the live loadout (sr/loadout_live.c)
+void mem_scan_start(void);                                  // sr-recomp diagnostics: SR_MEMSCAN (sr/mem_scan.c)
 // ---- ink colours (sr/ink_color.c): SR_INK_COLOR, SR_ENEMY_INK_COLOR
 int ink_color_parse(const char *s, float rgb[3]);           // "rrggbb" or "#rrggbb" to 0..1 each; 0 when it is not one
 int ink_wanted(void);                                       // 1 when either setting names a colour
 int ink_table_patch(uint8_t *raw, size_t n);                // the unpacked colour table, in place: the floats set (0: none)
 void *ink_table_frame(const uint8_t *raw, size_t n, size_t *out_n);   // raw as a zstd frame of raw blocks; malloc'd
+void ink_live_table(const uint8_t *raw, size_t n);          // sr/ink_live.c: the game's own table, unpacked, at start
+void ink_live_start(void);                                  // a change of the settings goes into the game's table in memory
+void ink_live_game_frame(Cpu *c);                           // the game's thread, once a frame: a written table applied at once
+// ---- a loadout for the raids (sr/loadout.c): SR_LOADOUT and SR_LOADOUT_*
+int loadout_wanted(void);
+uint8_t *loadout_table_build(const uint8_t *raw, size_t n, size_t *out_n);   // the unpacked raid table rewritten; NULL: no change
 // ---- camera speed (camera_speed.c): SR_STICK_SENS
 float cam_speed_wanted(void);                              // the factor SR_STICK_SENS asks for, 0.1 to 3
 float cam_speed_applied(void);                             // the factor in effect: 1 until romfs.c serves the pack

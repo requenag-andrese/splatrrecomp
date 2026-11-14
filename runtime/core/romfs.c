@@ -767,7 +767,6 @@ static void camera_overlay(void) {
 #define INKTABLE "RSDB/TeamColorDataSet.Product.110.rstbl.byml.zs"
 uint8_t *game_art_unzstd(const void *src, size_t n, size_t *out);   // game_art_zstd.c
 static void ink_overlay(void) {
-    if (!ink_wanted()) return;
     static const char keeps[] = "the ink keeps the game's colours";
     Overlay *base;
     size_t n, zn = 0;
@@ -778,6 +777,14 @@ static void ink_overlay(void) {
     size_t got = 0;
     uint8_t *raw = game_art_unzstd(in, n, &got);
     free(in);
+    // sr-recomp: the game's own table for a change of colour while the game runs (sr/ink_live.c), with or without a
+    // colour served now
+    if (raw) ink_live_table(raw, got);
+    ink_live_start();
+    if (!ink_wanted()) {
+        free(raw);
+        return;
+    }
     int set = raw ? ink_table_patch(raw, got) : -1;
     void *z = set > 0 ? ink_table_frame(raw, got, &zn) : NULL;
     free(raw);
@@ -785,6 +792,44 @@ static void ink_overlay(void) {
     if (!z) return;   // ink_table_patch said why
     if (serve_generated(INKTABLE, base, z, zn, "ink", "ink colours", keeps))
         rt_log("RomFS: ink colours: %d values of the team colour table set (ink_color, enemy_ink_color)", set);
+}
+
+// sr-recomp: the game's raid table with the loadout of the SR_LOADOUT_* settings written into its raids
+// (sr/loadout.c). As ink_overlay: unpacked with the launcher's decompressor, packed as raw blocks, written to
+// <profile>/loadout/ and served in the table's place. The rewritten table is never larger than the game's, so the
+// resource size table needs nothing.
+#define RAIDTABLE "RSDB/HuntDungeonInfo.Product.110.rstbl.byml.zs"
+// The raid table with the loadout of the settings (sr/loadout.c) served in the game's place. 1 when it is.
+static int loadout_serve(void) {
+    static const char keeps[] = "the raids keep their own loadouts";
+    Overlay *base;
+    size_t n, got = 0, out_n = 0, zn = 0;
+    void *in = read_served(RAIDTABLE, &base, &n, keeps);
+    if (!in) return 0;
+    uint8_t *raw = game_art_unzstd(in, n, &got);
+    free(in);
+    if (!raw) {
+        rt_log("RomFS: cannot unpack %s; %s", RAIDTABLE, keeps);
+        return 0;
+    }
+    uint8_t *out = loadout_table_build(raw, got, &out_n);   // says why when it gives none
+    void *z = out ? ink_table_frame(out, out_n, &zn) : NULL;
+    free(out);
+    free(raw);
+    if (!z || !serve_generated(RAIDTABLE, base, z, zn, "loadout", "raid loadout", keeps)) return 0;
+    rt_log("RomFS: raid loadout: the raid table rewritten, %zu bytes unpacked (the game's: %zu)", out_n, got);
+    return 1;
+}
+
+// The patch set `loadout` makes every raid give its row's loadout (sr/loadout.c); with the game's own table that is
+// an empty loadout, so the set follows the table: on only when ours is served, whatever its environment switch says.
+static void loadout_overlay(void) {
+    int set = rt_patch_set("loadout"), served = loadout_wanted() && loadout_serve();
+    rt_patch_switch(set, served);
+    if (served)
+        rt_log(set >= 0 ? "RomFS: raid loadout: every raid gives its row's loadout (patch set loadout on)"
+                        : "RomFS: raid loadout: this build has no patch set `loadout` (another version of the game, or C "
+                          "generated without srrecomp/patches): only the game's challenge raids give the loadout");
 }
 
 // The button prompts' folders (input_prompts_folder) and whether each had a manifest next to romfs-index.bin at start;
@@ -909,6 +954,7 @@ static void overlay_init(void) {
     heapdef_overlay();
     camera_overlay();
     ink_overlay();
+    loadout_overlay();
     added_init();
     if (noverlay) qsort(overlays, noverlay, sizeof *overlays, overlay_order);
     for (size_t k = 1; k < noverlay; k++)   // overlay_contest left one per file; the generated ones replace in place

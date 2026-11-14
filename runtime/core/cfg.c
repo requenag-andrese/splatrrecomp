@@ -42,8 +42,8 @@ static const char *const known[] = {
     "FLIGHT_SPIKE_MS", "FLIGHT_THUMBS", "FOV", "FOV_PATCH", "FPS60", "FPS_LIMIT", "FRAME_INTERP", "FREEZE_IDLE", "FREE_CORES",
     "FULLSCREEN", "FULLSCREEN_EXCLUSIVE", "FXAA", "GPL", "GPL_DRAW_BUILD", "GPU", "GPU_INDEX", "GPU_NAME", "HDR", "HDR_GAME_NITS", "HDR_HUE",
     "HDR_PEAK_NITS", "HDR_UI_NITS", "HIGHFPS_FIX", "ENEMY_INK_COLOR", "INK_COLOR", "INPUT", "INPUT_RECORD", "INPUT_SCRIPT", "INTERP_SHOTS", "LANG", "LIB_PREBUILD",
-    "LIB_PREBUILD_KEEP", "LIB_PREBUILD_THREADS", "LOCALE", "LOD_GUARD", "LSTICK_DEADZONE", "MEMORY", "MENU_LANG", "MENU_TEST",
-    "MENU_TEST_DIR", "MENU_TEST_SET", "MINIMAL_LAYOUT", "MIRROR_GAP", "MODS_DIR", "MODS_DISABLED", "MODS_ORDER", "MODS_REBUILD", "MOTION", "MOUSE_SENS", "MOVIE_HOST", "MOVIE_PACE",
+    "LIB_PREBUILD_KEEP", "LIB_PREBUILD_THREADS", "LOADOUT", "LOADOUT_AFFIX", "LOADOUT_BUDDY", "LOADOUT_GADGET_A", "LOADOUT_GADGET_L", "LOADOUT_GADGET_R", "LOADOUT_PARTS_A", "LOADOUT_PARTS_L", "LOADOUT_PARTS_R", "LOADOUT_PLAYER_LV", "LOADOUT_POWERS", "LOADOUT_RAIDS", "LOADOUT_STYLE", "LOADOUT_TABLE", "LOADOUT_TANK", "LOADOUT_WEAPON", "LOADOUT_WEAPON_LV", "LOADOUT_WEAPON_POWERS", "LOCALE", "LOD_GUARD", "LSTICK_DEADZONE", "MEMORY", "MENU_LANG", "MENU_TEST",
+    "MEMSCAN", "MEMSCAN_AT_S", "MEMSCAN_GAP", "MEMSCAN_OUT", "MEMSCAN_PAD", "MEMSCAN_STEP", "MENU_TEST_DIR", "MENU_TEST_SET", "MINIMAL_LAYOUT", "MIRROR_GAP", "MODS_DIR", "MODS_DISABLED", "MODS_ORDER", "MODS_REBUILD", "MOTION", "MOUSE_SENS", "MOVIE_HOST", "MOVIE_PACE",
     "MVOBJ_ALL", "MVOBJ_BANKS", "MVOBJ_EQUAL", "MVOBJ_EXACT", "MVOBJ_EXEC", "MVOBJ_NOC4", "MVOBJ_ONLY", "MVOBJ_TIMES", "MVPREV_CHECK", "MVPREV_GROW", "MVPREV_SKIP", "MVPREV_TRUST", "MV_CHECK",
     "MV_SURVEY",
     "ONE_PER_CORE", "OPERATION_MODE", "OUTPUT_RES", "PAD_LAYOUT", "PASS_CRUMBS", "PASS_TIMING", "PATCH_OUTPUT", "PATCH_SCENE", "PCSS", "PCSS_K", "PERF_OVERLAY", "PERF_SLOW_MS", "PIPELINE_CACHE", "PIPE_MEMO", "PIPE_PREBUILD", "PREWARM_STALL_S", "PIPE_SKIP", "PIPE_SYNC", "PIPE_WAIT",
@@ -84,6 +84,12 @@ static const struct { const char *key, *section; } sections[] = {
     {"PAD_LAYOUT", "input"}, {"PROMPTS", "input"}, {"STICK_DEADZONE", "input"}, {"LSTICK_DEADZONE", "input"}, {"RSTICK_DEADZONE", "input"},
     {"STICK_SENS", "input"},
     {"INK_COLOR", "ink"}, {"ENEMY_INK_COLOR", "ink"},   // sr-recomp (sr/ink_color.c)
+    {"LOADOUT", "loadout"}, {"LOADOUT_WEAPON", "loadout"}, {"LOADOUT_WEAPON_LV", "loadout"}, {"LOADOUT_AFFIX", "loadout"},   // sr/loadout.c
+    {"LOADOUT_GADGET_A", "loadout"}, {"LOADOUT_GADGET_L", "loadout"}, {"LOADOUT_GADGET_R", "loadout"},
+    {"LOADOUT_PARTS_A", "loadout"}, {"LOADOUT_PARTS_L", "loadout"}, {"LOADOUT_PARTS_R", "loadout"},
+    {"LOADOUT_STYLE", "loadout"}, {"LOADOUT_PLAYER_LV", "loadout"}, {"LOADOUT_RAIDS", "loadout"}, {"LOADOUT_TABLE", "loadout"},
+    {"LOADOUT_TANK", "loadout"}, {"LOADOUT_WEAPON_POWERS", "loadout"}, {"LOADOUT_POWERS", "loadout"},   // sr/loadout_live.c
+    {"LOADOUT_BUDDY", "loadout"},
     {"MOUSE_SENS", "input"}, {"WALK_KEY", "input"}, {"WALK_SCALE", "input"}, {"INPUT_RECORD", "input"},
     {"BIND_A", "input"}, {"BIND_B", "input"}, {"BIND_X", "input"}, {"BIND_Y", "input"}, {"BIND_LCLICK", "input"},
     {"BIND_RCLICK", "input"}, {"BIND_L", "input"}, {"BIND_R", "input"}, {"BIND_ZL", "input"}, {"BIND_ZR", "input"},
@@ -146,7 +152,11 @@ static const CfgMeta metas[] = {
     {"OPERATION_MODE", "docked", "docked|handheld", RESTART},
     {"ASSUME_FOCUS", "1", "0|1", LIVE},   // read on every focus change (ov_system.c)
     // sr-recomp: Ink (sr/ink_color.c): "rrggbb", unset = the game's own colour; the game reads its colours at start
-    {"INK_COLOR", "", NULL, RESTART}, {"ENEMY_INK_COLOR", "", NULL, RESTART},
+    {"INK_COLOR", "", NULL, LIVE}, {"ENEMY_INK_COLOR", "", NULL, LIVE},   // shown at the next place loaded (sr/ink_live.c)
+    // sr-recomp: Loadout (sr/loadout_live.c, ui/loadout_page.cpp): unset = the player's own; applied at once
+    {"LOADOUT", "0", "0|1", LIVE}, {"LOADOUT_WEAPON", "", NULL, LIVE}, {"LOADOUT_TANK", "", NULL, LIVE},
+    {"LOADOUT_BUDDY", "", NULL, LIVE}, {"LOADOUT_GADGET_L", "", NULL, LIVE}, {"LOADOUT_GADGET_R", "", NULL, LIVE},
+    {"LOADOUT_GADGET_A", "", NULL, LIVE},
     // Sound, Controls, Menu
     {"VOLUME", "100", "0..100", LIVE}, {"AUDIO_CHANNELS", "stereo", "auto|stereo|5.1", RESTART},
     {"MOTION", "1", "0|1", LIVE}, {"RUMBLE_STRENGTH", "130", "0..300", LIVE}, {"RUMBLE_CURVE", "0.6", "0.2..1.5", LIVE},

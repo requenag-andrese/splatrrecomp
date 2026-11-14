@@ -40,6 +40,8 @@ static int g_font_bad;
 #pragma clang diagnostic pop
 #include "ui/amiibo_page.h"
 #include "ui/binds_page.h"
+#include "ui/icon_atlas.h"
+#include "ui/loadout_page.h"
 #include "ui/option_rows.h"
 #include "game_art.h"
 
@@ -258,6 +260,7 @@ static void make_context(void) {
 
 static void vk_down(void) {
     if (!g_vk_ok) return;
+    icons_release();   // sr-recomp: the icon texture (ui/icon_atlas.cpp), an ImGui texture of the back end
     ImGui_ImplVulkan_Shutdown();
     g_vk_ok = 0;
     g_font_scale = 0;
@@ -606,7 +609,7 @@ extern "C" void menu_vk_release(void) {
 // SR_MENU_TEST_SET=<frame>:<key>=<value>[,<key>=<value>...][;<frame>:...]: cfg_set of each key (SR_ prefix
 // optional) at that presented frame; changes live settings with no input, menu open or not. sr-config.ini is written only by
 // the pseudo-key SAVE=1 (cfg_save, as a row change does; a failed write shows the menu's save note).
-enum { TAB_SCREEN, TAB_GAME, TAB_INK, TAB_SOUND, TAB_CONTROLS, TAB_AMIIBO, TAB_MENU, TAB_ADVANCED, TAB_COUNT };
+enum { TAB_SCREEN, TAB_GAME, TAB_INK, TAB_LOADOUT, TAB_SOUND, TAB_CONTROLS, TAB_AMIIBO, TAB_MENU, TAB_ADVANCED, TAB_COUNT };
 enum { TEST_PAGE_FRAMES = 30, TEST_SETS = 16 };
 struct TestSet { uint64_t frame; char key[64], value[64]; };
 static struct {
@@ -1066,9 +1069,17 @@ static void ink_rows(InkEdit &e, UiTextId label, UiTextId desc, float scale) {
 
 static void tab_ink(float scale) {
     opt_begin("##ink", scale);
+    opt_text(UI_SR_EXPERIMENTAL, true);
     opt_text(UI_SR_INK_NOTE);
     ink_rows(g_ink[0], UI_SR_INK_PLAYER, UI_SR_INK_PLAYER_DESC, scale);
     ink_rows(g_ink[1], UI_SR_INK_ENEMY, UI_SR_INK_ENEMY_DESC, scale);
+    opt_end();
+}
+
+// sr-recomp: the Loadout tab (ui/loadout_page.cpp, sr/loadout_live.c)
+static void tab_loadout(float scale) {
+    opt_begin("##loadout", scale);
+    loadout_rows(scale);
     opt_end();
 }
 
@@ -1259,7 +1270,7 @@ static void tab_advanced(float scale) {
     }
 }
 
-static const UiTextId kTabNames[TAB_COUNT] = {UI_MENU_TAB_SCREEN, UI_MENU_TAB_GAME, UI_SR_TAB_INK, UI_MENU_TAB_SOUND,
+static const UiTextId kTabNames[TAB_COUNT] = {UI_MENU_TAB_SCREEN, UI_MENU_TAB_GAME, UI_SR_TAB_INK, UI_SR_TAB_LOADOUT, UI_MENU_TAB_SOUND,
                                               UI_MENU_TAB_CONTROLS, UI_MENU_TAB_AMIIBO, UI_MENU_TAB_MENU,
                                               UI_MENU_TAB_ADVANCED};
 static int g_tab;               // the tab shown
@@ -1285,7 +1296,7 @@ static void layout_menu(uint32_t w, uint32_t h, float scale) {
     ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - ImGui::CalcTextSize(version).x);
     ImGui::TextDisabled("%s", version);
 
-    const bool modal_before = g_modal || binds_modal();   // last frame's: this frame's confirmations set it again
+    const bool modal_before = g_modal || binds_modal() || loadout_modal();   // last frame's: this frame's confirmations set it again
     g_modal = false;
     int step = modal_before || ImGui::GetIO().WantTextInput                                              ? 0
              : ImGui::IsKeyPressed(ImGuiKey_GamepadR1, false) || ImGui::IsKeyPressed(ImGuiKey_E, false) ? 1
@@ -1319,6 +1330,7 @@ static void layout_menu(uint32_t w, uint32_t h, float scale) {
             case TAB_SCREEN: tab_screen(scale); break;
             case TAB_GAME: tab_game(scale); break;
             case TAB_INK: tab_ink(scale); break;
+            case TAB_LOADOUT: tab_loadout(scale); break;
             case TAB_SOUND: tab_sound(scale); break;
             case TAB_CONTROLS: tab_controls(scale); break;
             case TAB_AMIIBO: tab_amiibo(scale); break;
@@ -1357,7 +1369,7 @@ static void layout_menu(uint32_t w, uint32_t h, float scale) {
     if (ImGui::Button(quit, ImVec2(bw, 0))) gfx_window_request_close();
     if (g_restart_ask) ImGui::OpenPopup("##restart_confirm"), g_restart_ask = false;   // at the level it is looked up
     restart_confirm();
-    bool was_modal = g_modal || binds_modal();
+    bool was_modal = g_modal || binds_modal() || loadout_modal();
     if (!was_modal && (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_GamepadFaceRight, false)))
         set_open(0);
     ImGui::End();
@@ -2208,6 +2220,7 @@ extern "C" int menu_overlay_frame(uint64_t frame, const MenuTarget *t, const cha
         set_open(0);
         return 0;
     }
+    icons_frame(t);   // sr-recomp: the game's icons the pages asked for (ui/icon_atlas.cpp)
     if (g_style_scale != scale) {
         ImGui::GetStyle() = g_base_style;
         ImGui::GetStyle().ScaleAllSizes(scale);

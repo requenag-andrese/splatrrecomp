@@ -14,6 +14,12 @@ extern "C" {
 // out small at a given line height.
 uint8_t *game_art_font(const char *name, size_t *size);
 
+// A RomFS file, zstd unpacked (a .zs file); free() it. sr-recomp: the loadout tab's names (sr/loadout_names.c).
+uint8_t *game_art_read(const char *path, size_t *out);
+// One icon of the game (a .bntx.zs of UI/Tex with an ASTC picture) as size x size RGBA, fitted and centred; free() it.
+// NULL when the dump has no such file. sr-recomp: the loadout tab (ui/icon_atlas.cpp).
+uint8_t *game_art_icon(const char *path, int size);
+
 // Pictures of the Boot layout archive. _load unpacks that archive (175 MB, once, then dropped) and decodes the named
 // pictures; they stay until _free. NULL names end the list. channels: 1 for a BC4 mask, 4 (RGBA) for an ASTC picture.
 typedef struct { const char *name; int w, h, channels; uint8_t *px; } GameMask;

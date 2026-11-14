@@ -1,0 +1,10 @@
+# Code patch sets for Splatoon Raiders 1.1.0. The file's name is main's module id (tools/gen_c.py --patches-dir picks
+# the file of the game being built; another version of the game gets no sets). Format: totk-pc-recomp's
+# recomp/patches.py.
+
+# loadout: the raid loadout of the settings (runtime/sr/loadout.c) in every raid. The game gives a raid its fixed
+# loadout, the Challenge* fields of the raid table, only when the raid's type is one of the two challenge types; with
+# the set on it skips that test. The runtime alone switches it, on once its own raid table is served
+# (runtime/core/romfs.c loadout_overlay): with the game's own table the set would empty the loadout in every raid.
+set loadout SR_PATCH_LOADOUT 0
+site loadout main 29807e8 54002fa8 d503201f
